@@ -1,0 +1,24 @@
+// stdio
+extern printf :: @(fmt: *i8) i32;
+extern scanf :: @(fmt: *i8) i32;
+extern puts :: (str: *i8) ();
+
+// string
+extern memcpy :: (dest: *(), src: *(), n: i64) ();
+extern memmove :: (dest: *(), src: *(), n: i64) ();
+extern memset :: (str: *(), c: i32, n: i64) ();
+extern strlen :: (str: *i8) i64;
+extern strcpy :: (dest: *i8, src: *i8) *i8;
+extern strncpy :: (dest: *i8, src: *i8, n: i64) *i8;
+extern strcmp :: (s1: *i8, s2: *i8) bool;
+
+// math
+
+
+// memory
+extern malloc :: (size: i64) *();
+extern realloc :: (ptr: *(), size: i64) *();
+extern free :: (ptr: *()) ();
+
+// misc
+extern exit :: (code: i32) ();
