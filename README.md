@@ -8,7 +8,7 @@ Toy project to try out flex and bison
 Flex \
 Bison \
 LLVM \
-Clang \
+Clang
 
 ### Step by Step Installation
 > git clone https://github.com/cactulus/ezo.git \
@@ -22,9 +22,9 @@ Clang \
 -c (compile only)
 
 ## Todo
-Next, Break statements \
-Fix for loop \
-Fix global constants
+Memory Management \
+Better error reporting system \
+Floating numbers
 
 ## Examples
 Examples can be found in /examples

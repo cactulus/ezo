@@ -72,6 +72,8 @@ enum stmt_kind {
 	STMT_BLOCK,
 	STMT_FOR,
 	STMT_EXPR,
+	STMT_BREAK,
+	STMT_CONTINUE
 };
 
 struct expr;

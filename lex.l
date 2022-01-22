@@ -8,6 +8,8 @@ extern char *escape_str_lit(char *text);
 
 %%
 
+continue { return CONTINUE; }
+break { return BREAK; }
 new { return NEW; }
 nil { return NIL; }
 sizeof { return SIZEOF; }

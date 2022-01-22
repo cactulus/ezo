@@ -27,6 +27,13 @@ static LLVMValueRef gen_func_call(struct symbol *sym, struct expr **args);
 static LLVMTypeRef convert_type(struct ezo_type *ty);
 static int llvm_size_of(LLVMTypeRef ty);
 
+static void push_continue_block(LLVMBasicBlockRef block);
+static void push_break_block(LLVMBasicBlockRef block);
+static LLVMBasicBlockRef pop_continue_block(void);
+static LLVMBasicBlockRef pop_break_block(void);
+static LLVMBasicBlockRef popif_continue_block(LLVMBasicBlockRef bb);
+static LLVMBasicBlockRef popif_break_block(LLVMBasicBlockRef bb);
+
 /* change file extension */
 static char *cfext(char *src, char *ext);
 
@@ -37,6 +44,12 @@ static LLVMTargetDataRef data_layout;
 static LLVMTargetMachineRef target_machine;
 
 static struct string_constant **string_constants = NULL;
+
+#define MAX_LOOP_LEVEL 10
+static LLVMBasicBlockRef continue_blocks[MAX_LOOP_LEVEL];
+static LLVMBasicBlockRef break_blocks[MAX_LOOP_LEVEL];
+static int cblocks_index = 0;
+static int bblocks_index = 0;
 
 void gen(struct stmt **AST, struct cli_options *options) {
     LLVMInitializeAllTargetInfos();
@@ -283,13 +296,20 @@ void gen_stmt(struct stmt *s) {
             LLVMBasicBlockRef body_block = LLVMAppendBasicBlock(current_func, "");
             LLVMBasicBlockRef after_block = LLVMAppendBasicBlock(current_func, "");
 
+            push_break_block(after_block);
+            push_continue_block(cond_block);
+
             LLVMBuildBr(builder, cond_block);
             LLVMPositionBuilderAtEnd(builder, cond_block);
             LLVMValueRef cmp = gen_expr(s->ws.cond);
 
             LLVMBuildCondBr(builder, cmp, body_block, after_block);
             LLVMPositionBuilderAtEnd(builder, body_block);
+
             gen_stmt(s->ws.then);
+            popif_break_block(after_block);
+            popif_continue_block(cond_block);
+
             LLVMBuildBr(builder, cond_block);
 
             LLVMPositionBuilderAtEnd(builder, after_block);
@@ -303,6 +323,9 @@ void gen_stmt(struct stmt *s) {
             LLVMBasicBlockRef inc_block = LLVMAppendBasicBlock(current_func, "");
             LLVMBasicBlockRef after_block = LLVMAppendBasicBlock(current_func, "");
 
+            push_break_block(after_block);
+            push_continue_block(inc_block);
+
             LLVMValueRef inc_var = LLVMBuildAlloca(builder, LLVMInt32Type(), ""); 
             s->frs.var->llvm_ref = inc_var;
 
@@ -315,7 +338,11 @@ void gen_stmt(struct stmt *s) {
             LLVMBuildCondBr(builder, cmp, body_block, after_block);
     
             LLVMPositionBuilderAtEnd(builder, body_block);
+
             gen_stmt(s->frs.then);
+            popif_break_block(after_block);
+            popif_continue_block(inc_block);
+
             LLVMBuildBr(builder, inc_block);
 
             LLVMPositionBuilderAtEnd(builder, inc_block);
@@ -328,7 +355,14 @@ void gen_stmt(struct stmt *s) {
         } break;
         case STMT_EXPR: {
             gen_expr(s->target);
+            break;
         }
+        case STMT_CONTINUE:
+            LLVMBuildBr(builder, pop_continue_block());
+            break;
+        case STMT_BREAK:
+            LLVMBuildBr(builder, pop_break_block());
+            break;
 		default:
 			fatal("unexpected stmt");
 	}
@@ -651,6 +685,50 @@ LLVMTypeRef convert_type(struct ezo_type *ty) {
 
 int llvm_size_of(LLVMTypeRef ty) {
     return LLVMSizeOfTypeInBits(data_layout, ty) / 8;
+}
+
+void push_continue_block(LLVMBasicBlockRef block) {
+    if (cblocks_index >= MAX_LOOP_LEVEL)
+        fatal("Max loop level reached");
+
+    continue_blocks[cblocks_index++] = block;
+}
+
+void push_break_block(LLVMBasicBlockRef block) {
+    if (bblocks_index >= MAX_LOOP_LEVEL)
+        fatal("Max loop level reached");
+
+    break_blocks[bblocks_index++] = block;
+}
+
+LLVMBasicBlockRef pop_continue_block(void) {
+    if (cblocks_index < 0)
+        fatal("Illegal continue statement");
+
+    return continue_blocks[cblocks_index--];
+}
+
+LLVMBasicBlockRef pop_break_block(void) {
+    if (bblocks_index < 0)
+        fatal("Illegal break statement");
+    
+    return break_blocks[bblocks_index--];
+}
+
+LLVMBasicBlockRef popif_continue_block(LLVMBasicBlockRef bb) {
+    int i;
+
+    for (i = 0; i < cblocks_index; ++i)
+        if (continue_blocks[i] == bb)
+            pop_continue_block();
+}
+
+LLVMBasicBlockRef popif_break_block(LLVMBasicBlockRef bb) {
+    int i;
+
+    for (i = 0; i < bblocks_index; ++i)
+        if (break_blocks[i] == bb)
+            pop_break_block();
 }
 
 char *cfext(char *src, char *ext) {

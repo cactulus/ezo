@@ -55,6 +55,8 @@ static int enum_field_counter = 0;
 %token STRING_LIT
 %token ID
 
+%token CONTINUE
+%token BREAK
 %token NEW
 %token NIL
 %token SIZEOF
@@ -284,6 +286,8 @@ statement
 	| while
 	| for
 	| expression ';' { $$ = stmt(STMT_EXPR); $$->target = $1; }
+	| BREAK ';' { $$ = stmt(STMT_BREAK); }
+	| CONTINUE ';' { $$ = stmt(STMT_CONTINUE); }
 	;
 
 vardef
@@ -398,7 +402,7 @@ while
     ;
 
 for
-    : FOR { push_scope(); } ID { $<symbol>$ = sym(strdup($3)); $<symbol>$->kind = SYM_VAR; scope_add(scope, $<symbol>$); }
+    : FOR { push_scope(); } ID { $<symbol>$ = sym(strdup($3)); $<symbol>$->kind = SYM_VAR; $<symbol>$->type = ezot(TYPE_INT32); scope_add(scope, $<symbol>$); }
         IN expression DDOT expression statement {
                 $$ = stmt(STMT_FOR);
 
