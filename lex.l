@@ -1,9 +1,9 @@
 %option noyywrap
 %option yylineno
 %{
+#include "ezo.h"
 #include "parser.tab.h"
 
-extern char *escape_str_lit(char *text);
 %}
 
 %%

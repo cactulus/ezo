@@ -13,7 +13,7 @@ CFLAGS += -ggdb -D STDLIB_PATH="\"$(STDLIB_PATH)\""
 $(BIN):
 	bison -d parser.y
 	flex lex.l
-	gcc lex.yy.c parser.tab.c ast.c gen.c main.c -o $(EXEC) $(CFLAGS) $(LIBS)
+	gcc lex.yy.c parser.tab.c ast.c gen.c main.c alloc.c -o $(EXEC) $(CFLAGS) $(LIBS)
 
 install: $(BIN)
 	mkdir -p $(STDLIB_PATH)

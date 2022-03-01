@@ -2,13 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ast.h"
-#include "cli.h"
+#include "ezo.h"
 #include "sb.h"
-
-extern int yyparse(void);
-extern void parser_init(struct cli_options *options);
-extern void gen(struct stmt **AST, struct cli_options *options);
 
 extern FILE *yyin;
 
@@ -44,13 +39,16 @@ int main(int argc, char *argv[]) {
     parse_args(argc - 1, argv + 1, &options);
 
 	yyin = options.input;
-
+    
+    ezo_alloc_init();
 	parser_init(&options);
 	int ret = yyparse();
+    parser_free();
 
 	gen(AST, &options);
 
 	fclose(options.input);
+    ezo_alloc_free();
 
 	return 0;
 }
@@ -74,7 +72,7 @@ char *escape_str_lit(char *text) {
         }
     }
 
-    etext = malloc(nl);
+    etext = ezo_alloc_str(nl);
     for (i = 1; i < sl - 1; ++i) {
         if (text[i] != '\\') {
             etext[i-1] = text[i]; 

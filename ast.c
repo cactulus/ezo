@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ast.h"
+#include "ezo.h"
 #include "sb.h"
 
 struct scope *scope_create(struct scope *parent) {
@@ -39,26 +39,26 @@ void scope_add(struct scope *scope, struct symbol *sym) {
 }
 
 struct expr *expr(int kind) {
-	struct expr *e = malloc(sizeof(struct expr));
+	struct expr *e = ezo_alloc_bytes(sizeof(struct expr));
 	e->kind = kind;
 	return e;
 }
 
 struct stmt *stmt(int kind) {
-	struct stmt *s = malloc(sizeof(struct stmt));
+	struct stmt *s = ezo_alloc_bytes(sizeof(struct stmt));
 	s->kind = kind;
 	return s;
 }
 
 struct symbol *sym(char *name) {
-	struct symbol *sym = malloc(sizeof(struct symbol));
+	struct symbol *sym = ezo_alloc_bytes(sizeof(struct symbol));
 	sym->name = name;
 	sym->constant = 0;
 	return sym;
 }
 
 struct ezo_type *ezot(int base) {
-	struct ezo_type *ty = malloc(sizeof(struct ezo_type));
+	struct ezo_type *ty = ezo_alloc_bytes(sizeof(struct ezo_type));
 	ty->base = base;
 	return ty;
 }

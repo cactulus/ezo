@@ -7,8 +7,7 @@
 #include <llvm-c/Transforms/PassManagerBuilder.h>
 
 #define LLVM_HEADER_
-#include "ast.h"
-#include "cli.h"
+#include "ezo.h"
 #include "sb.h"
 
 struct string_constant {
@@ -122,6 +121,10 @@ void gen(struct stmt **AST, struct cli_options *options) {
     }
 
     LLVMDumpModule(mod);
+
+    for (i = 0; i < sblen(string_constants); ++i)
+        free(string_constants[i]);
+    sbfree(string_constants);
 }
 
 void init_llvm(struct cli_options *options) {

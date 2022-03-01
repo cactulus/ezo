@@ -22,7 +22,6 @@ Clang
 -c (compile only)
 
 ## Todo
-Memory Management \
 Better error reporting system \
 Floating numbers
 

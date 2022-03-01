@@ -5,8 +5,7 @@
 
 #include "parser.tab.h"
 
-#include "ast.h"
-#include "cli.h"
+#include "ezo.h"
 #include "sb.h"
 
 extern int yylex(void);
@@ -659,12 +658,20 @@ void parser_init(struct cli_options *options) {
     }
 }
 
+void parser_free(void) {
+	sbfree(scope->symbols);
+	free(scope);
+}
+
 void push_scope(void) {
 	scope = scope_create(scope);
 }
 
 void pop_scope(void) {
+	struct scope *old = scope;
 	scope = scope->parent;
+	sbfree(old->symbols);
+	free(old);
 }
 
 struct symbol *find_function(char *name) {
